@@ -76,15 +76,37 @@
   let token = null;
   let currentEditId = null;
 
+  function showLogin() {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('dashboardSection').style.display = 'none';
+  }
+
+  function showDashboard() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('dashboardSection').style.display = 'block';
+  }
+
   async function apiFetch(url, options = {}) {
     const res = await fetch(url, { ...options, credentials: 'include' });
     if (res.status === 401) {
-      alert('Sesi habis, silakan login ulang');
-      window.location.reload();
+      showLogin();
       return null;
     }
     return res;
   }
+
+  // Cek sesi saat halaman dibuka
+  async function checkSession() {
+    const res = await fetch('/admin/check', { credentials: 'include' });
+    if (res.ok) {
+      showDashboard();
+      loadBeritaAdmin();
+    } else {
+      showLogin();
+    }
+  }
+
+  checkSession();
 
   // Login
   document.getElementById('loginBtn')?.addEventListener('click', async () => {
@@ -97,8 +119,7 @@
     });
     const data = await res.json();
     if (res.ok) {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('dashboardSection').style.display = 'block';
+      showDashboard();
       loadBeritaAdmin();
     } else {
       document.getElementById('loginError').innerText = data.error || 'Login gagal';
