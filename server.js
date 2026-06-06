@@ -13,19 +13,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ FIX 1: Session secret dari environment variable, bukan hardcoded
+// Simpan sesi ke SQLite supaya tidak hilang saat server restart
+const SQLiteStore = require('connect-sqlite3')(session);
 app.use(session({
+  store: new SQLiteStore({
+    db: 'sessions.db',
+    dir: path.join(__dirname)
+  }),
   secret: process.env.SESSION_SECRET || 'fallback-dev-secret-ganti-di-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 3600000,
+    maxAge: 3600000 * 24,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production'
+    secure: false
   }
 }));
 
-// ✅ FIX 2: Path upload absolut supaya tidak error di production
+// Path upload absolut supaya tidak error di production
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, 'public/uploads/')),
   filename: (req, file, cb) => {
@@ -34,7 +39,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// Batasi tipe file dan ukuran (maks 5MB)
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -89,9 +93,18 @@ app.post('/admin/login', async (req, res) => {
     if (!match) return res.status(401).json({ error: 'Username atau password salah' });
     req.session.admin = true;
     req.session.adminId = admin[0].id;
-    res.json({ message: 'Login sukses', redirect: '/admin.html' });
+    res.json({ message: 'Login sukses' });
   } catch (err) {
     res.status(500).json({ error: 'Terjadi kesalahan server' });
+  }
+});
+
+// Cek apakah sesi admin masih aktif
+app.get('/admin/check', (req, res) => {
+  if (req.session && req.session.admin) {
+    res.json({ ok: true });
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
   }
 });
 
@@ -154,7 +167,7 @@ app.get('/admin/kontak', isAdmin, async (req, res) => {
   }
 });
 
-// ✅ FIX 3: Global error handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Server error:', err.stack);
   if (err.message === 'Hanya file gambar yang diizinkan') {
