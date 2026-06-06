@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Yayasan ButtaPorea</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f5faf0; padding: 2rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .card { background: white; border-radius: 28px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    h1, h2 { color: #1e4a2f; margin-bottom: 1rem; }
+    .btn { background: #2b7a3e; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 40px; cursor: pointer; margin-right: 0.5rem; }
+    .btn-danger { background: #d9534f; }
+    .btn-warning { background: #f0ad4e; }
+    input, textarea { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 20px; border: 1px solid #ddd; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #e0e7e1; }
+    .login-form { max-width: 400px; margin: 100px auto; }
+    .nav-admin { margin-bottom: 2rem; }
+    .nav-admin a { margin-right: 1rem; text-decoration: none; color: #2b7a3e; }
+    .gambar-preview { max-width: 80px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+<div class="container" id="app">
+  <div id="loginSection" style="display: block;">
+    <div class="card login-form">
+      <h2>Login Admin</h2>
+      <input type="text" id="username" placeholder="Username" autocomplete="off">
+      <input type="password" id="password" placeholder="Password">
+      <button class="btn" id="loginBtn">Login</button>
+      <p id="loginError" style="color:red; margin-top:1rem;"></p>
+    </div>
+  </div>
+
+  <div id="dashboardSection" style="display: none;">
+    <div class="nav-admin">
+      <a href="#" id="menuBerita">📰 Kelola Berita</a>
+      <a href="#" id="menuKontak">📩 Pesan Kontak</a>
+      <a href="/admin/logout" style="float:right;">🚪 Logout</a>
+    </div>
+
+    <!-- Form Tambah/Edit Berita -->
+    <div id="beritaFormPanel" class="card" style="margin-bottom:2rem;">
+      <h3 id="formTitle">Tambah Berita Baru</h3>
+      <input type="hidden" id="editId">
+      <input type="text" id="judul" placeholder="Judul Berita">
+      <input type="text" id="tanggal" placeholder="Tanggal (YYYY-MM-DD)" value="2026-06-05">
+      <textarea id="deskripsi" rows="2" placeholder="Deskripsi singkat"></textarea>
+      <textarea id="konten" rows="4" placeholder="Konten lengkap"></textarea>
+      <input type="file" id="gambar" accept="image/*">
+      <div>
+        <button class="btn" id="simpanBeritaBtn">Simpan</button>
+        <button class="btn btn-warning" id="batalEditBtn" style="display:none;">Batal</button>
+      </div>
+    </div>
+
+    <!-- Daftar Berita -->
+    <div class="card">
+      <h3>Daftar Berita</h3>
+      <div id="beritaList"></div>
+    </div>
+
+    <!-- Daftar Pesan Kontak -->
+    <div class="card" id="kontakPanel" style="display:none;">
+      <h3>Pesan dari Pengunjung</h3>
+      <div id="kontakList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let token = null;
+  let currentEditId = null;
+
+  async function apiFetch(url, options = {}) {
+    const res = await fetch(url, { ...options, credentials: 'include' });
+    if (res.status === 401) {
+      alert('Sesi habis, silakan login ulang');
+      window.location.reload();
+      return null;
+    }
+    return res;
+  }
+
+  // Login
+  document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const res = await fetch('/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      loadBeritaAdmin();
+    } else {
+      document.getElementById('loginError').innerText = data.error || 'Login gagal';
+    }
+  });
+
+  // Load berita untuk admin
+  async function loadBeritaAdmin() {
+    const res = await apiFetch('/api/berita');
+    if (!res) return;
+    const berita = await res.json();
+    const html = `<table>
+      <thead><tr><th>ID</th><th>Gambar</th><th>Judul</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${berita.map(b => `
+          <tr>
+            <td>${b.id}</td>
+            <td>${b.gambar ? `<img class="gambar-preview" src="${b.gambar}">` : '-'}</td>
+            <td>${b.judul}</td>
+            <td>${b.tanggal || '-'}</td>
+            <td>
+              <button class="btn btn-warning" onclick="editBerita(${b.id})">Edit</button>
+              <button class="btn btn-danger" onclick="hapusBerita(${b.id})">Hapus</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+    document.getElementById('beritaList').innerHTML = html || '<p>Belum ada berita</p>';
+  }
+
+  // Edit berita
+  window.editBerita = async (id) => {
+    const res = await apiFetch(`/api/berita/${id}`);
+    if (!res) return;
+    const b = await res.json();
+    document.getElementById('editId').value = b.id;
+    document.getElementById('judul').value = b.judul;
+    document.getElementById('tanggal').value = b.tanggal || '';
+    document.getElementById('deskripsi').value = b.deskripsiSingkat || '';
+    document.getElementById('konten').value = b.kontenLengkap || '';
+    document.getElementById('formTitle').innerText = 'Edit Berita';
+    document.getElementById('batalEditBtn').style.display = 'inline-block';
+    currentEditId = b.id;
+  };
+
+  window.hapusBerita = async (id) => {
+    if (!confirm('Yakin hapus berita ini?')) return;
+    const res = await apiFetch(`/admin/berita/${id}`, { method: 'DELETE' });
+    if (res && res.ok) {
+      alert('Berita dihapus');
+      loadBeritaAdmin();
+    } else {
+      alert('Gagal hapus');
+    }
+  };
+
+  document.getElementById('simpanBeritaBtn')?.addEventListener('click', async () => {
+    const id = document.getElementById('editId').value;
+    const judul = document.getElementById('judul').value;
+    const tanggal = document.getElementById('tanggal').value;
+    const deskripsi = document.getElementById('deskripsi').value;
+    const konten = document.getElementById('konten').value;
+    const fileInput = document.getElementById('gambar');
+    const formData = new FormData();
+    formData.append('judul', judul);
+    formData.append('tanggal', tanggal);
+    formData.append('deskripsiSingkat', deskripsi);
+    formData.append('kontenLengkap', konten);
+    if (fileInput.files[0]) formData.append('gambar', fileInput.files[0]);
+    if (id) formData.append('gambar_lama', document.getElementById('gambar_lama')?.value || '');
+
+    let url = '/admin/berita';
+    let method = 'POST';
+    if (id) {
+      url = `/admin/berita/${id}`;
+      method = 'PUT';
+    }
+    const res = await apiFetch(url, { method, body: formData });
+    if (res && res.ok) {
+      alert(id ? 'Berita diperbarui' : 'Berita ditambahkan');
+      resetForm();
+      loadBeritaAdmin();
+    } else {
+      alert('Gagal menyimpan');
+    }
+  });
+
+  document.getElementById('batalEditBtn')?.addEventListener('click', resetForm);
+  function resetForm() {
+    document.getElementById('editId').value = '';
+    document.getElementById('judul').value = '';
+    document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+    document.getElementById('deskripsi').value = '';
+    document.getElementById('konten').value = '';
+    document.getElementById('gambar').value = '';
+    document.getElementById('formTitle').innerText = 'Tambah Berita Baru';
+    document.getElementById('batalEditBtn').style.display = 'none';
+    currentEditId = null;
+  }
+
+  // Tampilkan pesan kontak
+  document.getElementById('menuKontak')?.addEventListener('click', async () => {
+    document.getElementById('beritaFormPanel').style.display = 'none';
+    document.getElementById('kontakPanel').style.display = 'block';
+    const res = await apiFetch('/admin/kontak');
+    if (!res) return;
+    const pesan = await res.json();
+    const html = `<table>
+      <thead><tr><th>Nama</th><th>Email</th><th>Pesan</th><th>Tanggal</th></tr></thead>
+      <tbody>
+        ${pesan.map(p => `<tr><td>${p.nama}</td><td>${p.email}</td><td>${p.pesan}</td><td>${new Date(p.created_at).toLocaleString()}</td></tr>`).join('')}
+      </tbody>
+    </table>`;
+    document.getElementById('kontakList').innerHTML = html;
+  });
+  document.getElementById('menuBerita')?.addEventListener('click', () => {
+    document.getElementById('beritaFormPanel').style.display = 'block';
+    document.getElementById('kontakPanel').style.display = 'none';
+    loadBeritaAdmin();
+  });
+</script>
+</body>
+</html>
