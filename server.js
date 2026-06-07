@@ -82,59 +82,6 @@ app.post('/api/kontak', async (req, res) => {
   }
 });
 
-
-// ========== TRANSLATE via Anthropic API ==========
-app.post('/api/translate', async (req, res) => {
-  try {
-    const { articles } = req.body;
-    if (!articles || !Array.isArray(articles)) {
-      return res.status(400).json({ error: 'Format tidak valid' });
-    }
-
-    const apiKey = process.env.DEEPSEEK_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'DEEPSEEK_API_KEY belum diset di Railway Variables' });
-    }
-
-    const prompt = `You are a professional translator. Translate these Indonesian news articles to English.
-Return ONLY a valid JSON array (no markdown, no code blocks). Keep the id field unchanged.
-Translate only: judul, deskripsiSingkat, and kontenLengkap fields.
-
-Articles: ${JSON.stringify(articles)}`;
-
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        max_tokens: 2000,
-        messages: [
-          { role: 'system', content: 'You are a professional Indonesian-to-English translator. Always return valid JSON only.' },
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('DeepSeek error:', data);
-      return res.status(500).json({ error: 'Terjemahan gagal' });
-    }
-
-    const text = data.choices?.[0]?.message?.content || '[]';
-    const clean = text.replace(/```json|```/gi, '').trim();
-    const translated = JSON.parse(clean);
-    res.json({ translated });
-
-  } catch (err) {
-    console.error('Translate error:', err.message);
-    res.status(500).json({ error: 'Terjemahan gagal: ' + err.message });
-  }
-});
-
 // ========== ADMIN LOGIN ==========
 app.post('/admin/login', async (req, res) => {
   try {
