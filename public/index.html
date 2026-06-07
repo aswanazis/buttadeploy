@@ -5,30 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/png" sizes="32x32" href="Bplogo.png">
   <title>Yayasan ButtaPorea Indonesia | Urban Farming & Pelestarian Lingkungan</title>
-  <!-- Google Fonts + Font Awesome 6 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Tombol Toggle Bahasa */
+    #langToggleBtn {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      border-radius: 40px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    #langToggleBtn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+  </style>
 </head>
 <body>
 
 <nav class="navbar">
   <div class="nav-container">
     <div class="logo">
-  <img src="Bplogo.png" alt="Logo Butta Porea" class="logo-img">
-  <h2 class="logo-title">
-    <span class="yayasan">Yayasan</span>
-    <span class="buttaporea">ButtaPorea</span>
-    <span class="indonesia">Indonesia</span>
-  </h2>
-</div>
+      <img src="Bplogo.png" alt="Logo Butta Porea" class="logo-img">
+      <h2 class="logo-title">
+        <span class="yayasan">Yayasan</span>
+        <span class="buttaporea">ButtaPorea</span>
+        <span class="indonesia">Indonesia</span>
+      </h2>
+    </div>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#home">Beranda</a></li>
-      <li><a href="#about">Tentang</a></li>
-      <li><a href="#programs">Program</a></li>
-      <li><a href="#gallery">Galeri</a></li>
-      <li><a href="#berita">Berita</a></li>
-      <li><a href="#contact">Kontak</a></li>
+      <li><a href="#home" data-i18n="nav_home">Beranda</a></li>
+      <li><a href="#about" data-i18n="nav_about">Tentang</a></li>
+      <li><a href="#programs" data-i18n="nav_programs">Program</a></li>
+      <li><a href="#gallery" data-i18n="nav_gallery">Galeri</a></li>
+      <li><a href="#berita" data-i18n="nav_news">Berita</a></li>
+      <li><a href="#contact" data-i18n="nav_contact">Kontak</a></li>
+      <li><button id="langToggleBtn" onclick="toggleLang()">🌐 EN</button></li>
     </ul>
     <div class="menu-toggle" id="menuToggle">
       <i class="fas fa-bars"></i>
@@ -40,11 +59,11 @@
   <!-- Hero -->
   <section id="home" class="hero">
     <div class="container hero-content">
-      <h1>Menanam Kota, <br> Melestarikan Bumi</h1>
-      <p>Pusat Edukasi, Praktik & Replikasi Urban Farming Terintegrasi. Memberdayakan masyarakat lokal untuk ketahanan pangan dan lingkungan hijau.</p>
+      <h1 data-i18n="hero_title">Menanam Kota, <br> Melestarikan Bumi</h1>
+      <p data-i18n="hero_desc">Pusat Edukasi, Praktik & Replikasi Urban Farming Terintegrasi. Memberdayakan masyarakat lokal untuk ketahanan pangan dan lingkungan hijau.</p>
       <div class="hero-buttons">
-        <a href="#programs" class="btn">Jelajahi Program</a>
-        <a href="#contact" class="btn">Gabung Relawan</a>
+        <a href="#programs" class="btn" data-i18n="hero_btn_program">Jelajahi Program</a>
+        <a href="#contact" class="btn" data-i18n="hero_btn_volunteer">Gabung Relawan</a>
       </div>
     </div>
   </section>
@@ -53,43 +72,45 @@
   <section id="about" class="container fade-up">
     <div class="about-wrap">
       <div class="about-text">
-        <h3><i class="fas fa-seedling" style="color:#2b7a3e;"></i> Yayasan ButtaPorea Indonesia</h3>
-        <p>Berfokus pada pengembangan pusat edukasi, praktik urban farming, dan replikasi model pertanian perkotaan yang ramah lingkungan. Kami bekerja bersama masyarakat lokal untuk menciptakan ekosistem pangan berkelanjutan, mengurangi jejak karbon, dan menghidupkan kembali kearifan lokal dalam pelestarian alam.</p>
-        <p style="margin-top: 1rem;"><strong>Visi:</strong> Perkotaan hijau, mandiri pangan, dan harmonis dengan alam.<br>
-        <strong>Misi:</strong> Edukasi urban farming, pendampingan replikasi, serta gerakan lingkungan berbasis komunitas.</p>
+        <h3><i class="fas fa-seedling" style="color:#2b7a3e;"></i> <span data-i18n="about_title">Yayasan ButtaPorea Indonesia</span></h3>
+        <p data-i18n="about_desc">Berfokus pada pengembangan pusat edukasi, praktik urban farming, dan replikasi model pertanian perkotaan yang ramah lingkungan. Kami bekerja bersama masyarakat lokal untuk menciptakan ekosistem pangan berkelanjutan, mengurangi jejak karbon, dan menghidupkan kembali kearifan lokal dalam pelestarian alam.</p>
+        <p style="margin-top: 1rem;">
+          <span data-i18n="about_vision"><strong>Visi:</strong> Perkotaan hijau, mandiri pangan, dan harmonis dengan alam.</span><br>
+          <span data-i18n="about_mission"><strong>Misi:</strong> Edukasi urban farming, pendampingan replikasi, serta gerakan lingkungan berbasis komunitas.</span>
+        </p>
       </div>
       <div class="about-stats">
-        <div class="stat-item"><div class="stat-number">12+</div><div>Komunitas Binaan</div></div>
-        <div class="stat-item"><div class="stat-number">2.400+</div><div>Relawan Aktif</div></div>
-        <div class="stat-item"><div class="stat-number">35+</div><div>Kebun Percontohan</div></div>
+        <div class="stat-item"><div class="stat-number">12+</div><div data-i18n="stat_community">Komunitas Binaan</div></div>
+        <div class="stat-item"><div class="stat-number">2.400+</div><div data-i18n="stat_volunteer">Relawan Aktif</div></div>
+        <div class="stat-item"><div class="stat-number">35+</div><div data-i18n="stat_garden">Kebun Percontohan</div></div>
       </div>
     </div>
   </section>
 
   <!-- Program -->
   <section id="programs" class="container">
-    <h2 class="section-title fade-up">Program Unggulan Kami</h2>
-    <p class="section-sub fade-up">Edukasi terintegrasi, praktik langsung, hingga replikasi skala komunitas untuk keberlanjutan lingkungan.</p>
+    <h2 class="section-title fade-up" data-i18n="programs_title">Program Unggulan Kami</h2>
+    <p class="section-sub fade-up" data-i18n="programs_sub">Edukasi terintegrasi, praktik langsung, hingga replikasi skala komunitas untuk keberlanjutan lingkungan.</p>
     <div class="program-grid">
       <div class="program-card fade-up">
         <div class="program-icon"><i class="fas fa-chalkboard-user"></i></div>
-        <h3>Pusat Edukasi</h3>
-        <p>Pelatihan hidroponik, vertikultur, dan pengelolaan sampah organik. Workshop untuk anak muda & ibu rumah tangga.</p>
+        <h3 data-i18n="prog1_title">Pusat Edukasi</h3>
+        <p data-i18n="prog1_desc">Pelatihan hidroponik, vertikultur, dan pengelolaan sampah organik. Workshop untuk anak muda & ibu rumah tangga.</p>
       </div>
       <div class="program-card fade-up">
         <div class="program-icon"><i class="fas fa-hand-sparkles"></i></div>
-        <h3>Praktik Urban Farming</h3>
-        <p>Lahan percontohan di atap gedung & pekarangan sempit. Demo teknik pertanian modern yang zero waste.</p>
+        <h3 data-i18n="prog2_title">Praktik Urban Farming</h3>
+        <p data-i18n="prog2_desc">Lahan percontohan di atap gedung & pekarangan sempit. Demo teknik pertanian modern yang zero waste.</p>
       </div>
       <div class="program-card fade-up">
         <div class="program-icon"><i class="fas fa-copy"></i></div>
-        <h3>Replikasi Model</h3>
-        <p>Pendampingan pembuatan kebun komunitas, dari perencanaan hingga panen. Dukung regenerasi kawasan hijau.</p>
+        <h3 data-i18n="prog3_title">Replikasi Model</h3>
+        <p data-i18n="prog3_desc">Pendampingan pembuatan kebun komunitas, dari perencanaan hingga panen. Dukung regenerasi kawasan hijau.</p>
       </div>
       <div class="program-card fade-up">
         <div class="program-icon"><i class="fas fa-tree"></i></div>
-        <h3>Gerakan Lestari Bumi</h3>
-        <p>Bank sampah, daur ulang, penanaman pohon massal, dan kampanye sungai bersih berbasis masyarakat lokal.</p>
+        <h3 data-i18n="prog4_title">Gerakan Lestari Bumi</h3>
+        <p data-i18n="prog4_desc">Bank sampah, daur ulang, penanaman pohon massal, dan kampanye sungai bersih berbasis masyarakat lokal.</p>
       </div>
     </div>
   </section>
@@ -97,8 +118,8 @@
   <!-- Galeri -->
   <section id="gallery" style="background: #f5faf0;">
     <div class="container">
-      <h2 class="section-title fade-up">Momen Aksi Nyata</h2>
-      <p class="section-sub fade-up">Dari edukasi hingga panen bersama, setiap langkah kecil memberi dampak besar bagi lingkungan.</p>
+      <h2 class="section-title fade-up" data-i18n="gallery_title">Momen Aksi Nyata</h2>
+      <p class="section-sub fade-up" data-i18n="gallery_sub">Dari edukasi hingga panen bersama, setiap langkah kecil memberi dampak besar bagi lingkungan.</p>
       <div class="gallery-grid">
         <div class="gallery-item fade-up"><img src="https://images.unsplash.com/photo-1589923188651-9c0d4e2f2e7b?w=600&auto=format" alt="Edukasi urban farming" loading="lazy"></div>
         <div class="gallery-item fade-up"><img src="https://images.unsplash.com/photo-1592417817098-8fd3e2bc74fb?w=600&auto=format" alt="Praktik hidroponik" loading="lazy"></div>
@@ -111,30 +132,30 @@
   </section>
 
   <!-- Berita & Kegiatan -->
-<section id="berita" class="container">
-  <h2 class="section-title fade-up">Berita & Kegiatan Terbaru</h2>
-  <p class="section-sub fade-up">Ikuti aksi nyata kami dalam mewujudkan urban farming berkelanjutan dan pelestarian lingkungan.</p>
-  <div class="berita-grid" id="beritaGrid">
-    <!-- Card berita akan diisi oleh JavaScript -->
-  </div>
-</section>
+  <section id="berita" class="container">
+    <h2 class="section-title fade-up" data-i18n="news_title">Berita & Kegiatan Terbaru</h2>
+    <p class="section-sub fade-up" data-i18n="news_sub">Ikuti aksi nyata kami dalam mewujudkan urban farming berkelanjutan dan pelestarian lingkungan.</p>
+    <div class="berita-grid" id="beritaGrid"></div>
+  </section>
 
-  <!-- Contact Form dengan Formspree -->
+  <!-- Contact -->
   <section id="contact" class="container">
-    <h2 class="section-title fade-up">Jadi Bagian dari Perubahan</h2>
-    <p class="section-sub fade-up">Isi formulir berikut untuk menjadi relawan, mitra, atau sekadar bertanya tentang program urban farming.</p>
+    <h2 class="section-title fade-up" data-i18n="contact_title">Jadi Bagian dari Perubahan</h2>
+    <p class="section-sub fade-up" data-i18n="contact_sub">Isi formulir berikut untuk menjadi relawan, mitra, atau sekadar bertanya tentang program urban farming.</p>
     <div class="contact-form fade-up">
       <form id="contactForm">
         <div class="input-group">
-          <input type="text" id="nama" name="nama" placeholder="Nama Lengkap" required>
+          <input type="text" id="nama" name="nama" data-i18n-placeholder="contact_name" placeholder="Nama Lengkap" required>
         </div>
         <div class="input-group">
-          <input type="email" id="email" name="email" placeholder="Alamat Email" required>
+          <input type="email" id="email" name="email" data-i18n-placeholder="contact_email" placeholder="Alamat Email" required>
         </div>
         <div class="input-group">
-          <textarea rows="3" id="pesan" name="pesan" placeholder="Pesan / Minat Bergabung (relawan, edukasi, donasi, dll)" required></textarea>
+          <textarea rows="3" id="pesan" name="pesan" data-i18n-placeholder="contact_message" placeholder="Pesan / Minat Bergabung" required></textarea>
         </div>
-        <button type="submit" class="btn" id="submitBtn">Kirim Pesan <i class="fas fa-paper-plane"></i></button>
+        <button type="submit" class="btn" id="submitBtn">
+          <span data-i18n="contact_send">Kirim Pesan</span> <i class="fas fa-paper-plane"></i>
+        </button>
       </form>
       <p id="formFeedback" style="margin-top: 1rem; text-align: center; font-size: 0.9rem;"></p>
     </div>
@@ -144,44 +165,38 @@
 <footer>
   <div class="container">
     <div class="footer-grid">
-      <!-- Kolom 1: Info Yayasan & Kontak -->
       <div class="footer-col">
         <h3>Butta<span>Porea</span></h3>
-        <p>Yayasan yang berfokus pada pengembangan pusat edukasi, praktik urban farming, dan pelestarian lingkungan berbasis masyarakat lokal.</p>
+        <p data-i18n="footer_desc">Yayasan yang berfokus pada pengembangan pusat edukasi, praktik urban farming, dan pelestarian lingkungan berbasis masyarakat lokal.</p>
         <div class="footer-contact">
           <p><i class="fas fa-phone-alt"></i> +62 81242445556</p>
           <p><i class="fas fa-envelope"></i> buttaporeaindonesia@gmail.com</p>
         </div>
       </div>
-
-      <!-- Kolom 2: Alamat -->
       <div class="footer-col">
-        <h4>Alamat Sekretariat</h4>
+        <h4 data-i18n="footer_address_title">Alamat Sekretariat</h4>
         <address>
           Jl. Letjen Hertasning Blok E7/9,<br>
           Tidung, Rappocini,<br>
           Kota Makassar, Sulawesi Selatan, 90222
         </address>
       </div>
-
-      <!-- Kolom 3: Sosial Media & Hak Cipta -->
       <div class="footer-col">
-        <h4>Ikuti Kami</h4>
+        <h4 data-i18n="footer_follow">Ikuti Kami</h4>
         <div class="social-icons">
-          <a href="https://www.instagram.com/buttaporea/" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-instagram"></i></a>
+          <a href="https://www.instagram.com/buttaporea/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
           <a href="#"><i class="fab fa-facebook-f"></i></a>
-          <a href="https://www.youtube.com/@ButtaPorea" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-youtube"></i></a>
+          <a href="https://www.youtube.com/@ButtaPorea" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
           <a href="#"><i class="fab fa-tiktok"></i></a>
         </div>
-        <p class="copyright">&copy; 2026 Yayasan Butta Porea<br>Edukasi, Praktik & Replikasi Urban Farming Berkelanjutan</p>
-        <p class="tagline">🌱 Bersama Masyarakat Lokal untuk Bumi Lebih Hijau</p>
+        <p class="copyright" data-i18n="footer_copyright">© 2026 Yayasan Butta Porea<br>Edukasi, Praktik & Replikasi Urban Farming Berkelanjutan</p>
+        <p class="tagline" data-i18n="footer_tagline">🌱 Bersama Masyarakat Lokal untuk Bumi Lebih Hijau</p>
       </div>
     </div>
   </div>
 </footer>
 
+<script src="i18n.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
