@@ -219,6 +219,8 @@ function getCurrentLang() {
 }
 
 function setLang(lang) {
+  // Refresh tampilan berita setelah bahasa berubah
+  if (typeof window.refreshBeritaDisplay === "function") window.refreshBeritaDisplay();
   localStorage.setItem('bp_lang', lang);
   applyTranslations(lang);
   updateToggleBtn(lang);

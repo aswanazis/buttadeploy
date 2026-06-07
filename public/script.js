@@ -1,28 +1,22 @@
-// ========== MOBILE MENU TOGGLE (tetap) ==========
+// ========== MOBILE MENU TOGGLE ==========
 const menuToggle = document.getElementById('menuToggle');
 const navLinks = document.getElementById('navLinks');
 if (menuToggle) {
-  menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-  });
+  menuToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
 }
 document.querySelectorAll('.nav-links a').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('active');
-  });
+  link.addEventListener('click', () => navLinks.classList.remove('active'));
 });
 
-// ========== SMOOTH SCROLL (tetap) ==========
+// ========== SMOOTH SCROLL ==========
 document.querySelectorAll('.nav-links a, .hero-buttons a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     const targetId = this.getAttribute('href');
-    if (targetId && targetId !== "#") {
+    if (targetId && targetId !== '#') {
       const targetElem = document.querySelector(targetId);
       if (targetElem) {
         e.preventDefault();
-        const offset = 80;
-        const elementPosition = targetElem.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+        window.scrollTo({ top: targetElem.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
       }
     }
   });
@@ -32,10 +26,7 @@ document.querySelectorAll('.nav-links a, .hero-buttons a[href^="#"]').forEach(an
 const fadeElements = document.querySelectorAll('.fade-up');
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('show');
-      observer.unobserve(entry.target);
-    }
+    if (entry.isIntersecting) { entry.target.classList.add('show'); observer.unobserve(entry.target); }
   });
 }, { threshold: 0.2 });
 fadeElements.forEach(el => observer.observe(el));
@@ -43,162 +34,225 @@ fadeElements.forEach(el => observer.observe(el));
 // ========== NAVBAR SCROLL EFFECT ==========
 window.addEventListener('scroll', () => {
   const navbar = document.querySelector('.navbar');
-  if (window.scrollY > 50) {
-    navbar.style.background = 'rgba(255, 252, 240, 0.98)';
-    navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-  } else {
-    navbar.style.background = 'rgba(255, 252, 240, 0.96)';
-    navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.05)';
+  if (navbar) {
+    navbar.style.background = window.scrollY > 50 ? 'rgba(255,252,240,0.98)' : 'rgba(255,252,240,0.96)';
+    navbar.style.boxShadow = window.scrollY > 50 ? '0 4px 20px rgba(0,0,0,0.08)' : '0 2px 20px rgba(0,0,0,0.05)';
   }
 });
 
-// ========== STAT COUNTER ANIMATION (tetap) ==========
+// ========== STAT COUNTER ANIMATION ==========
 const statNumbers = document.querySelectorAll('.stat-number');
 const animateNumber = (el, target) => {
   let current = 0;
   const step = Math.ceil(target / 40);
   const timer = setInterval(() => {
     current += step;
-    if (current >= target) {
-      el.innerText = target + (target === 12 ? '+' : target === 2400 ? '+' : '+');
-      clearInterval(timer);
-    } else {
-      el.innerText = current;
-    }
+    if (current >= target) { el.innerText = target + '+'; clearInterval(timer); }
+    else el.innerText = current;
   }, 25);
 };
 const statObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      const statEl = entry.target;
-      const rawText = statEl.innerText;
-      let targetNumber = 0;
-      if (rawText.includes('12+')) targetNumber = 12;
-      else if (rawText.includes('2.400')) targetNumber = 2400;
-      else if (rawText.includes('35+')) targetNumber = 35;
-      if (targetNumber) {
-        statEl.innerText = '0';
-        animateNumber(statEl, targetNumber);
-      }
-      statObserver.unobserve(statEl);
+      const el = entry.target;
+      const raw = el.innerText;
+      let num = 0;
+      if (raw.includes('12')) num = 12;
+      else if (raw.includes('2.400') || raw.includes('2400')) num = 2400;
+      else if (raw.includes('35')) num = 35;
+      if (num) { el.innerText = '0'; animateNumber(el, num); }
+      statObserver.unobserve(el);
     }
   });
 }, { threshold: 0.5 });
 statNumbers.forEach(stat => statObserver.observe(stat));
 
-// ========== FORM HANDLER (Kirim ke backend sendiri) ==========
+// ========== FORM HANDLER ==========
 const form = document.getElementById('contactForm');
 const feedbackDiv = document.getElementById('formFeedback');
 const submitBtn = document.getElementById('submitBtn');
-
 if (form) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nama = document.getElementById('nama').value.trim();
     const email = document.getElementById('email').value.trim();
     const pesan = document.getElementById('pesan').value.trim();
-
-    if (!nama || !email || !pesan) {
-      feedbackDiv.innerHTML = '<span style="color:#d9534f;">❌ Harap isi semua bidang!</span>';
-      return;
-    }
-    if (!email.includes('@') || !email.includes('.')) {
-      feedbackDiv.innerHTML = '<span style="color:#d9534f;">✉️ Email tidak valid.</span>';
-      return;
-    }
-
+    if (!nama || !email || !pesan) { feedbackDiv.innerHTML = '<span style="color:#d9534f;">❌ Harap isi semua bidang!</span>'; return; }
+    if (!email.includes('@') || !email.includes('.')) { feedbackDiv.innerHTML = '<span style="color:#d9534f;">✉️ Email tidak valid.</span>'; return; }
     submitBtn.disabled = true;
     submitBtn.innerHTML = 'Mengirim... <i class="fas fa-spinner fa-pulse"></i>';
     feedbackDiv.innerHTML = '';
-
     try {
       const response = await fetch('/api/kontak', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nama, email, pesan })
       });
       const data = await response.json();
       if (response.ok) {
-        feedbackDiv.innerHTML = `<span style="color:#2b7a3e;">✅ ${data.message || 'Pesan terkirim!'}</span>`;
+        feedbackDiv.innerHTML = `<span style="color:#2b7a3e;">${t('contact_success')}</span>`;
         form.reset();
       } else {
-        feedbackDiv.innerHTML = `<span style="color:#d9534f;">❌ ${data.error || 'Gagal mengirim'}</span>`;
+        feedbackDiv.innerHTML = `<span style="color:#d9534f;">${t('contact_error')}</span>`;
       }
-    } catch (error) {
-      feedbackDiv.innerHTML = '<span style="color:#d9534f;">❌ Gagal terhubung ke server.</span>';
+    } catch {
+      feedbackDiv.innerHTML = `<span style="color:#d9534f;">${t('contact_error')}</span>`;
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = 'Kirim Pesan <i class="fas fa-paper-plane"></i>';
-      setTimeout(() => { if (feedbackDiv.innerHTML) feedbackDiv.innerHTML = ''; }, 6000);
+      submitBtn.innerHTML = `<span data-i18n="contact_send">${t('contact_send')}</span> <i class="fas fa-paper-plane"></i>`;
+      setTimeout(() => { feedbackDiv.innerHTML = ''; }, 6000);
     }
   });
 }
 
-// ========== FITUR BERITA DINAMIS DARI BACKEND ==========
-const beritaGrid = document.getElementById('beritaGrid');
+// ========== TERJEMAHAN BERITA via Claude AI ==========
+// Cache terjemahan di sessionStorage supaya tidak request ulang
+const translationCache = {};
 
-async function loadBerita() {
-  if (!beritaGrid) return;
-  beritaGrid.innerHTML = '<div style="text-align:center; padding:2rem;">🔄 Memuat berita...</div>';
-  
+async function translateBeritaWithAI(beritaList) {
+  // Cek cache dulu
+  const cacheKey = 'bp_news_en_' + beritaList.map(b => b.id).join('_');
+  if (translationCache[cacheKey]) return translationCache[cacheKey];
+
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    translationCache[cacheKey] = JSON.parse(cached);
+    return translationCache[cacheKey];
+  }
+
+  // Siapkan prompt untuk Claude
+  const newsData = beritaList.map(b => ({
+    id: b.id,
+    judul: b.judul,
+    deskripsiSingkat: b.deskripsiSingkat || '',
+    kontenLengkap: b.kontenLengkap || ''
+  }));
+
+  const prompt = `You are a professional translator. Translate the following Indonesian news articles to English.
+Return ONLY a valid JSON array (no markdown, no explanation) with the same structure but translated fields.
+Keep the id field unchanged. Translate judul, deskripsiSingkat, and kontenLengkap fields.
+
+Articles to translate:
+${JSON.stringify(newsData)}`;
+
   try {
-    const res = await fetch('/api/berita');
-    if (!res.ok) throw new Error('Gagal mengambil data');
-    const beritaList = await res.json();
-    displayBerita(beritaList);
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(c => c.text || '').join('') || '[]';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const translated = JSON.parse(clean);
+
+    // Merge hasil terjemahan dengan data asli (gambar, tanggal tetap dari asli)
+    const merged = beritaList.map(original => {
+      const tr = translated.find(t => t.id === original.id);
+      return tr ? { ...original, judul: tr.judul, deskripsiSingkat: tr.deskripsiSingkat, kontenLengkap: tr.kontenLengkap } : original;
+    });
+
+    // Simpan ke cache
+    translationCache[cacheKey] = merged;
+    sessionStorage.setItem(cacheKey, JSON.stringify(merged));
+    return merged;
+
   } catch (err) {
-    console.error(err);
-    beritaGrid.innerHTML = '<div style="text-align:center; padding:2rem; color:#d9534f;">❌ Gagal memuat berita, coba lagi nanti.</div>';
+    console.warn('Terjemahan gagal, tampilkan bahasa asli:', err);
+    return beritaList; // fallback ke bahasa Indonesia
   }
 }
 
-function displayBerita(beritaArray) {
+// ========== DATA BERITA (disimpan setelah fetch pertama) ==========
+let originalBeritaList = [];
+
+async function loadBerita() {
+  const beritaGrid = document.getElementById('beritaGrid');
+  if (!beritaGrid) return;
+
+  beritaGrid.innerHTML = '<div style="text-align:center;padding:2rem;">🔄 Memuat berita...</div>';
+  try {
+    const res = await fetch('/api/berita');
+    if (!res.ok) throw new Error();
+    originalBeritaList = await res.json();
+    await displayBeritaByLang();
+  } catch {
+    beritaGrid.innerHTML = '<div style="text-align:center;padding:2rem;color:#d9534f;">❌ Gagal memuat berita.</div>';
+  }
+}
+
+// Dipanggil saat bahasa berubah (dari i18n.js) atau saat pertama load
+window.refreshBeritaDisplay = async function() {
+  if (originalBeritaList.length > 0) await displayBeritaByLang();
+};
+
+async function displayBeritaByLang() {
+  const beritaGrid = document.getElementById('beritaGrid');
+  if (!beritaGrid) return;
+
+  const lang = getCurrentLang();
+  let beritaToShow = originalBeritaList;
+
+  if (lang === 'en' && originalBeritaList.length > 0) {
+    beritaGrid.innerHTML = '<div style="text-align:center;padding:2rem;">🌐 Translating news to English...</div>';
+    beritaToShow = await translateBeritaWithAI(originalBeritaList);
+  }
+
+  renderBeritaCards(beritaToShow);
+}
+
+function renderBeritaCards(beritaArray) {
+  const beritaGrid = document.getElementById('beritaGrid');
   if (!beritaGrid) return;
   beritaGrid.innerHTML = '';
-  
+
   if (beritaArray.length === 0) {
-    beritaGrid.innerHTML = '<div style="text-align:center; padding:2rem;">Belum ada berita. Silakan cek lagi nanti.</div>';
+    beritaGrid.innerHTML = `<div style="text-align:center;padding:2rem;">${t('news_empty')}</div>`;
     return;
   }
 
   beritaArray.forEach(berita => {
     const card = document.createElement('div');
     card.className = 'berita-card fade-up';
-    // Gunakan gambar default jika tidak ada
     const imgSrc = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://via.placeholder.com/600x400?text=Gambar+Berita';
     card.innerHTML = `
-      <img class="berita-img" src="${imgSrc}" alt="${berita.judul}" loading="lazy" onerror="this.src='https://via.placeholder.com/600x400?text=Gambar+Tidak+Tersedia'">
+      <img class="berita-img" src="${imgSrc}" alt="${berita.judul}" loading="lazy"
+           onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
       <div class="berita-info">
-        <div class="berita-tanggal"><i class="far fa-calendar-alt"></i> ${berita.tanggal || 'Tanggal tidak tersedia'}</div>
+        <div class="berita-tanggal"><i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}</div>
         <h3 class="berita-judul">${berita.judul}</h3>
         <p class="berita-deskripsi">${(berita.deskripsiSingkat || '').substring(0, 100)}${(berita.deskripsiSingkat || '').length > 100 ? '...' : ''}</p>
-        <button class="btn-berita" data-id="${berita.id}">Baca Selengkapnya <i class="fas fa-arrow-right"></i></button>
+        <button class="btn-berita" data-id="${berita.id}">${t('news_read_more')} <i class="fas fa-arrow-right"></i></button>
       </div>
     `;
     beritaGrid.appendChild(card);
   });
 
-  // Pasang event listener untuk tombol baca selengkapnya
   document.querySelectorAll('.btn-berita').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = btn.dataset.id;
-      try {
-        const res = await fetch(`/api/berita/${id}`);
-        if (!res.ok) throw new Error();
-        const berita = await res.json();
-        showModal(berita);
-      } catch (err) {
-        alert('Gagal memuat detail berita');
+    btn.addEventListener('click', async () => {
+      const id = parseInt(btn.dataset.id);
+      const lang = getCurrentLang();
+      let berita;
+
+      if (lang === 'en') {
+        const cacheKey = 'bp_news_en_' + originalBeritaList.map(b => b.id).join('_');
+        const cached = translationCache[cacheKey] || JSON.parse(sessionStorage.getItem(cacheKey) || '[]');
+        berita = cached.find(b => b.id === id) || originalBeritaList.find(b => b.id === id);
+      } else {
+        berita = originalBeritaList.find(b => b.id === id);
       }
+
+      if (berita) showModal(berita);
     });
   });
 
-  // Trigger fade-up untuk card baru
-  const newFade = document.querySelectorAll('.fade-up');
-  newFade.forEach(el => observer.observe(el));
+  document.querySelectorAll('.berita-card.fade-up').forEach(el => observer.observe(el));
 }
 
-// Modal untuk detail berita (sama seperti sebelumnya, tapi konten dari parameter)
 function showModal(berita) {
   let modal = document.getElementById('beritaModal');
   if (!modal) {
@@ -215,28 +269,19 @@ function showModal(berita) {
       </div>
     `;
     document.body.appendChild(modal);
-    const closeBtn = modal.querySelector('.close-modal');
-    closeBtn.addEventListener('click', () => modal.style.display = 'none');
-    window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    modal.querySelector('.close-modal').addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   }
-  const modalImg = modal.querySelector('.modal-img');
-  const modalJudul = modal.querySelector('.modal-judul');
-  const modalTanggal = modal.querySelector('.modal-tanggal');
-  const modalBody = modal.querySelector('.modal-body');
-  modalImg.src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://via.placeholder.com/600x400?text=No+Image';
-  modalJudul.textContent = berita.judul;
-  modalTanggal.innerHTML = `<i class="far fa-calendar-alt"></i> ${berita.tanggal || 'Tanggal tidak diketahui'}`;
-  modalBody.innerHTML = `<p>${berita.kontenLengkap || berita.deskripsiSingkat || 'Tidak ada konten lengkap.'}</p><p style="margin-top:1rem;"><strong>#ButtaPorea #UrbanFarming</strong></p>`;
+  modal.querySelector('.modal-img').src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://via.placeholder.com/600x400?text=No+Image';
+  modal.querySelector('.modal-judul').textContent = berita.judul;
+  modal.querySelector('.modal-tanggal').innerHTML = `<i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}`;
+  modal.querySelector('.modal-body').innerHTML = `<p>${berita.kontenLengkap || berita.deskripsiSingkat || '-'}</p><p style="margin-top:1rem;"><strong>#ButtaPorea #UrbanFarming</strong></p>`;
   modal.style.display = 'flex';
 }
 
-// Escape key close modal
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', e => {
   const modal = document.getElementById('beritaModal');
   if (e.key === 'Escape' && modal && modal.style.display === 'flex') modal.style.display = 'none';
 });
 
-// Panggil loadBerita ketika halaman siap
-if (beritaGrid) {
-  loadBerita();
-}
+if (document.getElementById('beritaGrid')) loadBerita();
