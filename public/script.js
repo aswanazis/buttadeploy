@@ -208,10 +208,10 @@ function renderBeritaCards(beritaArray) {
   beritaArray.forEach(berita => {
     const card = document.createElement('div');
     card.className = 'berita-card fade-up';
-    const imgSrc = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E';
+    const imgSrc = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://placehold.co/600x400/e8f5e9/2b7a3e?text=No+Image';
     card.innerHTML = `
       <img class="berita-img" src="${imgSrc}" alt="${berita.judul}" loading="lazy"
-           onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E'">
+           onerror="this.src='https://placehold.co/600x400/e8f5e9/2b7a3e?text=No+Image'">
       <div class="berita-info">
         <div class="berita-tanggal"><i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}</div>
         <h3 class="berita-judul">${berita.judul}</h3>
@@ -262,7 +262,7 @@ function showModal(berita) {
     modal.querySelector('.close-modal').addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   }
-  modal.querySelector('.modal-img').src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E';
+  modal.querySelector('.modal-img').src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://placehold.co/600x400/e8f5e9/2b7a3e?text=No+Image';
   modal.querySelector('.modal-judul').textContent = berita.judul;
   modal.querySelector('.modal-tanggal').innerHTML = `<i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}`;
   modal.querySelector('.modal-body').innerHTML = `<p>${berita.kontenLengkap || berita.deskripsiSingkat || '-'}</p><p style="margin-top:1rem;"><strong>#ButtaPorea #UrbanFarming</strong></p>`;
