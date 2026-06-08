@@ -127,28 +127,17 @@ async function translateBeritaWithAI(beritaList) {
     kontenLengkap: b.kontenLengkap || ''
   }));
 
-  const prompt = `You are a professional translator. Translate the following Indonesian news articles to English.
-Return ONLY a valid JSON array (no markdown, no explanation) with the same structure but translated fields.
-Keep the id field unchanged. Translate judul, deskripsiSingkat, and kontenLengkap fields.
-
-Articles to translate:
-${JSON.stringify(newsData)}`;
-
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Panggil endpoint server (bukan Anthropic langsung — hindari CORS)
+    const response = await fetch('/api/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ articles: newsData })
     });
 
     const data = await response.json();
-    const text = data.content?.map(c => c.text || '').join('') || '[]';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const translated = JSON.parse(clean);
+    if (!response.ok) throw new Error(data.error || 'Gagal');
+    const translated = data.translated;
 
     // Merge hasil terjemahan dengan data asli (gambar, tanggal tetap dari asli)
     const merged = beritaList.map(original => {
