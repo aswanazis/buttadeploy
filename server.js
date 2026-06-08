@@ -13,10 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve gambar dari persistent volume /data/uploads via URL /uploads/
-const uploadsDir = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'uploads');
-require('fs').mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(uploadsDir));
+// Gambar disimpan di Cloudinary - tidak perlu static uploads route
 
 // Simpan sesi ke SQLite supaya tidak hilang saat server restart
 const SQLiteStore = require('connect-sqlite3')(session);
@@ -35,29 +32,28 @@ app.use(session({
   }
 }));
 
-// Path upload absolut supaya tidak error di production
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'uploads');
-    require('fs').mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
+// Upload gambar ke Cloudinary (persistent, tidak hilang saat restart)
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'buttaporea',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 800, crop: 'limit' }]
   }
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    if (ext && mime) return cb(null, true);
-    cb(new Error('Hanya file gambar yang diizinkan'));
-  }
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 // ========== API PUBLIK ==========
@@ -185,7 +181,7 @@ app.post('/admin/berita', isAdmin, upload.single('gambar'), async (req, res) => 
   try {
     const { judul, deskripsiSingkat, kontenLengkap, tanggal } = req.body;
     if (!judul) return res.status(400).json({ error: 'Judul wajib diisi' });
-    const gambar = req.file ? `/uploads/${req.file.filename}` : null; // URL tetap /uploads/
+    const gambar = req.file ? req.file.path : null; // Cloudinary URL
     const result = await run(
       'INSERT INTO berita (judul, deskripsiSingkat, kontenLengkap, gambar, tanggal) VALUES (?, ?, ?, ?, ?)',
       [judul, deskripsiSingkat, kontenLengkap, gambar, tanggal || new Date().toISOString().split('T')[0]]
@@ -200,7 +196,7 @@ app.put('/admin/berita/:id', isAdmin, upload.single('gambar'), async (req, res) 
   try {
     const { judul, deskripsiSingkat, kontenLengkap, tanggal } = req.body;
     let gambar = req.body.gambar_lama;
-    if (req.file) gambar = `/uploads/${req.file.filename}`;
+    if (req.file) gambar = req.file.path; // Cloudinary URL
     await run(
       'UPDATE berita SET judul=?, deskripsiSingkat=?, kontenLengkap=?, gambar=?, tanggal=? WHERE id=?',
       [judul, deskripsiSingkat, kontenLengkap, gambar, tanggal, req.params.id]
