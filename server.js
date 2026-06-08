@@ -13,12 +13,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve gambar dari persistent volume /data/uploads via URL /uploads/
+const uploadsDir = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'uploads');
+require('fs').mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
+
 // Simpan sesi ke SQLite supaya tidak hilang saat server restart
 const SQLiteStore = require('connect-sqlite3')(session);
 app.use(session({
   store: new SQLiteStore({
     db: 'sessions.db',
-    dir: path.join(__dirname)
+    dir: process.env.DATA_DIR || path.join(__dirname, 'data')
   }),
   secret: process.env.SESSION_SECRET || 'fallback-dev-secret-ganti-di-production',
   resave: false,
@@ -32,7 +37,11 @@ app.use(session({
 
 // Path upload absolut supaya tidak error di production
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'public/uploads/')),
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.env.DATA_DIR || path.join(__dirname, 'data'), 'uploads');
+    require('fs').mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
@@ -83,15 +92,7 @@ app.post('/api/kontak', async (req, res) => {
 });
 
 
-// ========== TRANSLATE via Google Translate (gratis, tanpa API key) ==========
-async function googleTranslate(text, from = 'id', to = 'en') {
-  if (!text || text.trim() === '') return text;
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return data[0].map(chunk => chunk[0]).join('');
-}
-
+// ========== TRANSLATE via Anthropic API ==========
 app.post('/api/translate', async (req, res) => {
   try {
     const { articles } = req.body;
@@ -99,20 +100,42 @@ app.post('/api/translate', async (req, res) => {
       return res.status(400).json({ error: 'Format tidak valid' });
     }
 
-    const translated = await Promise.all(articles.map(async (article) => {
-      try {
-        const [judul, deskripsiSingkat, kontenLengkap] = await Promise.all([
-          googleTranslate(article.judul || ''),
-          googleTranslate(article.deskripsiSingkat || ''),
-          googleTranslate(article.kontenLengkap || '')
-        ]);
-        return { ...article, judul, deskripsiSingkat, kontenLengkap };
-      } catch (err) {
-        console.error('Gagal terjemahkan artikel', article.id, err.message);
-        return article;
-      }
-    }));
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'DEEPSEEK_API_KEY belum diset di Railway Variables' });
+    }
 
+    const prompt = `You are a professional translator. Translate these Indonesian news articles to English.
+Return ONLY a valid JSON array (no markdown, no code blocks). Keep the id field unchanged.
+Translate only: judul, deskripsiSingkat, and kontenLengkap fields.
+
+Articles: ${JSON.stringify(articles)}`;
+
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: 'You are a professional Indonesian-to-English translator. Always return valid JSON only.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('DeepSeek error:', data);
+      return res.status(500).json({ error: 'Terjemahan gagal' });
+    }
+
+    const text = data.choices?.[0]?.message?.content || '[]';
+    const clean = text.replace(/```json|```/gi, '').trim();
+    const translated = JSON.parse(clean);
     res.json({ translated });
 
   } catch (err) {
@@ -162,7 +185,7 @@ app.post('/admin/berita', isAdmin, upload.single('gambar'), async (req, res) => 
   try {
     const { judul, deskripsiSingkat, kontenLengkap, tanggal } = req.body;
     if (!judul) return res.status(400).json({ error: 'Judul wajib diisi' });
-    const gambar = req.file ? `/uploads/${req.file.filename}` : null;
+    const gambar = req.file ? `/uploads/${req.file.filename}` : null; // URL tetap /uploads/
     const result = await run(
       'INSERT INTO berita (judul, deskripsiSingkat, kontenLengkap, gambar, tanggal) VALUES (?, ?, ?, ?, ?)',
       [judul, deskripsiSingkat, kontenLengkap, gambar, tanggal || new Date().toISOString().split('T')[0]]

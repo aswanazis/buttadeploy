@@ -3,7 +3,11 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 
 // ✅ FIX: Gunakan path absolut agar database selalu ditemukan
-const dbPath = path.join(__dirname, 'buttaporea.db');
+// Gunakan /app/data jika ada (Railway persistent volume), fallback ke folder lokal
+const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
+const fs = require('fs');
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+const dbPath = path.join(dataDir, 'buttaporea.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('❌ Gagal membuka database:', err.message);
