@@ -168,6 +168,7 @@ async function loadBerita() {
     const res = await fetch('/api/berita');
     if (!res.ok) throw new Error();
     originalBeritaList = await res.json();
+    // Langsung terjemahkan kalau bahasa EN sudah tersimpan di browser
     await displayBeritaByLang();
   } catch {
     beritaGrid.innerHTML = '<div style="text-align:center;padding:2rem;color:#d9534f;">❌ Gagal memuat berita.</div>';
@@ -207,10 +208,10 @@ function renderBeritaCards(beritaArray) {
   beritaArray.forEach(berita => {
     const card = document.createElement('div');
     card.className = 'berita-card fade-up';
-    const imgSrc = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://via.placeholder.com/600x400?text=Gambar+Berita';
+    const imgSrc = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E';
     card.innerHTML = `
       <img class="berita-img" src="${imgSrc}" alt="${berita.judul}" loading="lazy"
-           onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
+           onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E'">
       <div class="berita-info">
         <div class="berita-tanggal"><i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}</div>
         <h3 class="berita-judul">${berita.judul}</h3>
@@ -261,7 +262,7 @@ function showModal(berita) {
     modal.querySelector('.close-modal').addEventListener('click', () => modal.style.display = 'none');
     window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   }
-  modal.querySelector('.modal-img').src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'https://via.placeholder.com/600x400?text=No+Image';
+  modal.querySelector('.modal-img').src = berita.gambar && berita.gambar !== 'null' ? berita.gambar : 'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e8f5e9' width='600' height='400'/%3E%3Ctext fill='%232b7a3e' font-family='Inter,sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E🌱 No Image%3C/text%3E%3C/svg%3E';
   modal.querySelector('.modal-judul').textContent = berita.judul;
   modal.querySelector('.modal-tanggal').innerHTML = `<i class="far fa-calendar-alt"></i> ${berita.tanggal || '-'}`;
   modal.querySelector('.modal-body').innerHTML = `<p>${berita.kontenLengkap || berita.deskripsiSingkat || '-'}</p><p style="margin-top:1rem;"><strong>#ButtaPorea #UrbanFarming</strong></p>`;
@@ -273,4 +274,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && modal && modal.style.display === 'flex') modal.style.display = 'none';
 });
 
-if (document.getElementById('beritaGrid')) loadBerita();
+if (document.getElementById('beritaGrid')) {
+  // Langsung load + translate sesuai bahasa yang tersimpan di browser
+  loadBerita();
+}

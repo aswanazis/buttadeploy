@@ -218,13 +218,16 @@ function getCurrentLang() {
   return localStorage.getItem('bp_lang') || detectBrowserLang();
 }
 
-function setLang(lang) {
-  // Refresh tampilan berita setelah bahasa berubah
-  if (typeof window.refreshBeritaDisplay === "function") window.refreshBeritaDisplay();
+function setLang(lang, refreshNews = false) {
+  // Simpan dulu ke localStorage sebelum refresh
   localStorage.setItem('bp_lang', lang);
   applyTranslations(lang);
   updateToggleBtn(lang);
   document.documentElement.lang = lang;
+  // Refresh berita hanya saat user toggle manual, bukan saat pertama load
+  if (refreshNews && typeof window.refreshBeritaDisplay === "function") {
+    window.refreshBeritaDisplay();
+  }
 }
 
 function t(key) {
@@ -252,7 +255,7 @@ function updateToggleBtn(lang) {
 
 function toggleLang() {
   const current = getCurrentLang();
-  setLang(current === 'id' ? 'en' : 'id');
+  setLang(current === 'id' ? 'en' : 'id', true);
 }
 
 // Auto-apply saat halaman siap
