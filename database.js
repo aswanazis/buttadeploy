@@ -2,40 +2,53 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
-// Gunakan PostgreSQL jika DATABASE_URL tersedia, fallback ke SQLite
 const usePostgres = !!process.env.DATABASE_URL;
 
 let pool, db, query, run;
 
 if (usePostgres) {
   console.log('✅ Menggunakan PostgreSQL');
-  pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
 
   query = async (sql, params = []) => {
-    // Konversi ? ke $1, $2 dst (format PostgreSQL)
     let i = 0;
-    const pgSql = sql.replace(/\?/g, () => `$${++i}`);
+    // Konversi nama kolom camelCase ke lowercase untuk PostgreSQL
+    const pgSql = sql
+      .replace(/\?/g, () => `$${++i}`)
+      .replace(/deskripsiSingkat/g, 'deskripssingkat')
+      .replace(/kontenLengkap/g, 'kontenlengkap')
+      .replace(/created_at/g, 'created_at');
     const result = await pool.query(pgSql, params);
-    return result.rows;
+    // Normalisasi nama kolom kembali ke camelCase untuk frontend
+    return result.rows.map(row => ({
+      ...row,
+      deskripsiSingkat: row.deskripssingkat ?? row.deskripsisingkat ?? row.deskripsiSingkat,
+      kontenLengkap: row.kontenlengkap ?? row.kontenlengkap ?? row.kontenLengkap,
+    }));
   };
 
   run = async (sql, params = []) => {
     let i = 0;
-    const pgSql = sql.replace(/\?/g, () => `$${++i}`);
-    // Tambah RETURNING id untuk INSERT
+    const pgSql = sql
+      .replace(/\?/g, () => `$${++i}`)
+      .replace(/deskripsiSingkat/g, 'deskripssingkat')
+      .replace(/kontenLengkap/g, 'kontenlengkap');
     const finalSql = pgSql.match(/^INSERT/i) ? pgSql + ' RETURNING id' : pgSql;
     const result = await pool.query(finalSql, params);
     return { id: result.rows[0]?.id, changes: result.rowCount };
   };
 
-  // Inisialisasi tabel PostgreSQL
   const initDB = async () => {
+    // Buat tabel dengan nama kolom lowercase
     await pool.query(`
       CREATE TABLE IF NOT EXISTS berita (
         id SERIAL PRIMARY KEY,
         judul TEXT NOT NULL,
-        "deskripsiSingkat" TEXT,
-        "kontenLengkap" TEXT,
+        deskripssingkat TEXT,
+        kontenlengkap TEXT,
         gambar TEXT,
         tanggal TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -58,15 +71,11 @@ if (usePostgres) {
       )
     `);
 
-    // Buat akun admin dari env jika belum ada
     const existing = await pool.query('SELECT * FROM admin LIMIT 1');
     if (existing.rows.length === 0) {
       const adminUser = process.env.ADMIN_USERNAME || 'admin';
       const adminPass = process.env.ADMIN_PASSWORD;
-      if (!adminPass) {
-        console.warn('⚠️  ADMIN_PASSWORD tidak diset di .env!');
-        return;
-      }
+      if (!adminPass) { console.warn('⚠️  ADMIN_PASSWORD tidak diset!'); return; }
       const hash = bcrypt.hashSync(adminPass, 10);
       await pool.query('INSERT INTO admin (username, password) VALUES ($1, $2)', [adminUser, hash]);
       console.log(`✅ Akun admin "${adminUser}" berhasil dibuat`);
@@ -77,7 +86,6 @@ if (usePostgres) {
   initDB().catch(err => console.error('❌ Gagal init database:', err.message));
 
 } else {
-  // Fallback ke SQLite untuk development lokal
   console.log('⚠️  DATABASE_URL tidak ditemukan, menggunakan SQLite');
   const sqlite3 = require('sqlite3').verbose();
   const path = require('path');
@@ -101,7 +109,8 @@ if (usePostgres) {
         const adminPass = process.env.ADMIN_PASSWORD;
         if (!adminPass) { console.warn('⚠️  ADMIN_PASSWORD tidak diset!'); return; }
         const hash = bcrypt.hashSync(adminPass, 10);
-        db.run('INSERT INTO admin (username, password) VALUES (?, ?)', [process.env.ADMIN_USERNAME || 'admin', hash],
+        db.run('INSERT INTO admin (username, password) VALUES (?, ?)',
+          [process.env.ADMIN_USERNAME || 'admin', hash],
           (err) => { if (!err) console.log('✅ Akun admin dibuat'); });
       }
     });
@@ -112,7 +121,9 @@ if (usePostgres) {
   });
 
   run = (sql, params = []) => new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) { err ? reject(err) : resolve({ id: this.lastID, changes: this.changes }); });
+    db.run(sql, params, function(err) {
+      err ? reject(err) : resolve({ id: this.lastID, changes: this.changes });
+    });
   });
 }
 
