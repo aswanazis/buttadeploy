@@ -91,9 +91,9 @@ app.post('/api/translate', async (req, res) => {
       return res.status(400).json({ error: 'Format tidak valid' });
     }
 
-    const apiKey = process.env.DEEPSEEK_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'DEEPSEEK_API_KEY belum diset di Railway Variables' });
+      return res.status(500).json({ error: 'ANTHROPIC_API_KEY belum diset di Railway Variables' });
     }
 
     const prompt = `You are a professional translator. Translate these Indonesian news articles to English.
@@ -102,29 +102,27 @@ Translate only: judul, deskripsiSingkat, and kontenLengkap fields.
 
 Articles: ${JSON.stringify(articles)}`;
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 2000,
-        messages: [
-          { role: 'system', content: 'You are a professional Indonesian-to-English translator. Always return valid JSON only.' },
-          { role: 'user', content: prompt }
-        ]
+        messages: [{ role: 'user', content: prompt }]
       })
     });
 
     const data = await response.json();
     if (!response.ok) {
-      console.error('DeepSeek error:', data);
+      console.error('Anthropic error:', data);
       return res.status(500).json({ error: 'Terjemahan gagal' });
     }
 
-    const text = data.choices?.[0]?.message?.content || '[]';
+    const text = data.content?.map(c => c.text || '').join('') || '[]';
     const clean = text.replace(/```json|```/gi, '').trim();
     const translated = JSON.parse(clean);
     res.json({ translated });
