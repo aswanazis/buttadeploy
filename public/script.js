@@ -115,8 +115,14 @@ async function translateBeritaWithAI(beritaList) {
 
   const cached = sessionStorage.getItem(cacheKey);
   if (cached) {
-    translationCache[cacheKey] = JSON.parse(cached);
-    return translationCache[cacheKey];
+    // Patch gambar dari data asli (gambar tidak disimpan di cache)
+    const parsedCache = JSON.parse(cached);
+    const patched = parsedCache.map(cached => {
+      const original = beritaList.find(b => b.id === cached.id);
+      return original ? { ...cached, gambar: original.gambar, tanggal: original.tanggal } : cached;
+    });
+    translationCache[cacheKey] = patched;
+    return patched;
   }
 
   // Siapkan prompt untuk Claude
@@ -139,10 +145,15 @@ async function translateBeritaWithAI(beritaList) {
     if (!response.ok) throw new Error(data.error || 'Gagal');
     const translated = data.translated;
 
-    // Merge hasil terjemahan dengan data asli (gambar, tanggal tetap dari asli)
+    // Merge: teks dari terjemahan, gambar & tanggal SELALU dari data asli
     const merged = beritaList.map(original => {
       const tr = translated.find(t => t.id === original.id);
-      return tr ? { ...original, judul: tr.judul, deskripsiSingkat: tr.deskripsiSingkat, kontenLengkap: tr.kontenLengkap } : original;
+      return tr ? {
+        ...original,          // gambar, tanggal, id dari asli
+        judul: tr.judul || original.judul,
+        deskripsiSingkat: tr.deskripsiSingkat || original.deskripsiSingkat,
+        kontenLengkap: tr.kontenLengkap || original.kontenLengkap
+      } : original;
     });
 
     // Simpan ke cache
