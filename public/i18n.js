@@ -67,6 +67,20 @@ const translations = {
     footer_copyright: "© 2026 Yayasan Butta Porea<br>Edukasi, Praktik & Replikasi Urban Farming Berkelanjutan",
     footer_tagline: "🌱 Bersama Masyarakat Lokal untuk Bumi Lebih Hijau",
 
+    // Video
+    video_title: "Video Kegiatan",
+    video_sub: "Dokumentasi kegiatan urban farming dan pelestarian lingkungan kami.",
+    video_empty: "Belum ada video.",
+    admin_menu_video: "🎬 Kelola Video",
+    admin_add_video: "Tambah Video YouTube",
+    admin_video_title: "Judul Video",
+    admin_video_url: "URL YouTube (contoh: https://youtube.com/watch?v=xxx)",
+    admin_video_desc: "Deskripsi singkat (opsional)",
+    admin_video_list: "Daftar Video",
+    admin_video_added: "Video ditambahkan",
+    admin_video_deleted: "Video dihapus",
+    admin_confirm_delete_video: "Yakin hapus video ini?",
+
     // Admin Panel
     admin_login_title: "Login Admin",
     admin_username: "Username",
@@ -166,6 +180,34 @@ const translations = {
     footer_follow: "Follow Us",
     footer_copyright: "© 2026 ButtaPorea Foundation<br>Education, Practice & Sustainable Urban Farming Replication",
     footer_tagline: "🌱 Together with Local Communities for a Greener Earth",
+
+    // Video
+    video_title: "Video Kegiatan",
+    video_sub: "Dokumentasi kegiatan urban farming dan pelestarian lingkungan kami.",
+    video_empty: "Belum ada video.",
+    admin_menu_video: "🎬 Kelola Video",
+    admin_add_video: "Tambah Video YouTube",
+    admin_video_title: "Judul Video",
+    admin_video_url: "URL YouTube (contoh: https://youtube.com/watch?v=xxx)",
+    admin_video_desc: "Deskripsi singkat (opsional)",
+    admin_video_list: "Daftar Video",
+    admin_video_added: "Video ditambahkan",
+    admin_video_deleted: "Video dihapus",
+    admin_confirm_delete_video: "Yakin hapus video ini?",
+
+    // Video
+    video_title: "Activity Videos",
+    video_sub: "Documentation of our urban farming and environmental conservation activities.",
+    video_empty: "No videos yet.",
+    admin_menu_video: "🎬 Manage Videos",
+    admin_add_video: "Add YouTube Video",
+    admin_video_title: "Video Title",
+    admin_video_url: "YouTube URL (e.g: https://youtube.com/watch?v=xxx)",
+    admin_video_desc: "Short description (optional)",
+    admin_video_list: "Video List",
+    admin_video_added: "Video added",
+    admin_video_deleted: "Video deleted",
+    admin_confirm_delete_video: "Are you sure you want to delete this video?",
 
     // Admin Panel
     admin_login_title: "Admin Login",

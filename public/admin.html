@@ -59,6 +59,7 @@
     <div class="nav-admin">
       <a href="#" id="menuBerita" data-i18n="admin_menu_news">📰 Kelola Berita</a>
       <a href="#" id="menuKontak" data-i18n="admin_menu_contact">📩 Pesan Kontak</a>
+      <a href="#" id="menuVideo" data-i18n="admin_menu_video">🎬 Kelola Video</a>
       <div class="right">
         <button id="langToggleBtn" onclick="toggleLang()">🌐 EN</button>
         <a href="/admin/logout" data-i18n="admin_logout">🚪 Logout</a>
@@ -90,6 +91,19 @@
     <div class="card" id="kontakPanel" style="display:none;">
       <h3 data-i18n="admin_contact_title">Pesan dari Pengunjung</h3>
       <div id="kontakList"></div>
+    </div>
+
+    <!-- Panel Video -->
+    <div class="card" id="videoPanel" style="display:none;">
+      <h3 data-i18n="admin_add_video">Tambah Video YouTube</h3>
+      <input type="text" id="videoJudul" data-i18n-placeholder="admin_video_title" placeholder="Judul Video">
+      <input type="text" id="videoUrl" data-i18n-placeholder="admin_video_url" placeholder="URL YouTube">
+      <textarea id="videoDeskripsi" rows="2" data-i18n-placeholder="admin_video_desc" placeholder="Deskripsi singkat (opsional)"></textarea>
+      <button class="btn" id="simpanVideoBtn" data-i18n="admin_save">Simpan</button>
+
+      <hr style="margin: 1.5rem 0; border-color: #e0e7e1;">
+      <h3 data-i18n="admin_video_list">Daftar Video</h3>
+      <div id="videoList"></div>
     </div>
   </div>
 </div>
@@ -251,6 +265,7 @@
   document.getElementById('menuKontak')?.addEventListener('click', async () => {
     document.getElementById('beritaFormPanel').style.display = 'none';
     document.getElementById('kontakPanel').style.display = 'block';
+    document.getElementById('videoPanel').style.display = 'none';
     const res = await apiFetch('/admin/kontak');
     if (!res) return;
     const pesan = await res.json();
@@ -276,8 +291,72 @@
   document.getElementById('menuBerita')?.addEventListener('click', () => {
     document.getElementById('beritaFormPanel').style.display = 'block';
     document.getElementById('kontakPanel').style.display = 'none';
+    document.getElementById('videoPanel').style.display = 'none';
     loadBeritaAdmin();
   });
+
+  // ===== VIDEO =====
+  document.getElementById('menuVideo')?.addEventListener('click', () => {
+    document.getElementById('beritaFormPanel').style.display = 'none';
+    document.getElementById('kontakPanel').style.display = 'none';
+    document.getElementById('videoPanel').style.display = 'block';
+    loadVideoAdmin();
+  });
+
+  async function loadVideoAdmin() {
+    const res = await apiFetch('/api/video');
+    if (!res) return;
+    const videos = await res.json();
+    if (videos.length === 0) {
+      document.getElementById('videoList').innerHTML = `<p>${t('video_empty')}</p>`;
+      return;
+    }
+    const html = `<table>
+      <thead><tr>
+        <th>ID</th><th>Preview</th><th>${t('admin_col_title')}</th><th>${t('admin_col_action')}</th>
+      </tr></thead>
+      <tbody>
+        ${videos.map(v => `<tr>
+          <td>${v.id}</td>
+          <td><img src="https://img.youtube.com/vi/${v.video_id}/mqdefault.jpg" style="width:120px;border-radius:8px;"></td>
+          <td>${v.judul}</td>
+          <td><button class="btn btn-danger" onclick="hapusVideo(${v.id})">${t('admin_delete_btn')}</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+    document.getElementById('videoList').innerHTML = html;
+  }
+
+  document.getElementById('simpanVideoBtn')?.addEventListener('click', async () => {
+    const judul = document.getElementById('videoJudul').value.trim();
+    const url_youtube = document.getElementById('videoUrl').value.trim();
+    const deskripsi = document.getElementById('videoDeskripsi').value.trim();
+    if (!judul || !url_youtube) return alert('Judul dan URL wajib diisi');
+    const res = await apiFetch('/admin/video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ judul, url_youtube, deskripsi })
+    });
+    if (res && res.ok) {
+      alert(t('admin_video_added'));
+      document.getElementById('videoJudul').value = '';
+      document.getElementById('videoUrl').value = '';
+      document.getElementById('videoDeskripsi').value = '';
+      loadVideoAdmin();
+    } else {
+      const data = await res?.json();
+      alert(data?.error || t('admin_save_error'));
+    }
+  });
+
+  window.hapusVideo = async (id) => {
+    if (!confirm(t('admin_confirm_delete_video'))) return;
+    const res = await apiFetch(`/admin/video/${id}`, { method: 'DELETE' });
+    if (res && res.ok) {
+      alert(t('admin_video_deleted'));
+      loadVideoAdmin();
+    }
+  };
 </script>
 </body>
 </html>

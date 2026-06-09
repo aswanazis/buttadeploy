@@ -289,3 +289,48 @@ if (document.getElementById('beritaGrid')) {
   // Langsung load + translate sesuai bahasa yang tersimpan di browser
   loadBerita();
 }
+
+// ========== LOAD VIDEO YOUTUBE ==========
+async function loadVideo() {
+  const videoGrid = document.getElementById('videoGrid');
+  if (!videoGrid) return;
+
+  try {
+    const res = await fetch('/api/video');
+    if (!res.ok) throw new Error();
+    const videos = await res.json();
+
+    if (videos.length === 0) {
+      videoGrid.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1;">${t('video_empty')}</div>`;
+      return;
+    }
+
+    videoGrid.innerHTML = '';
+    videos.forEach(video => {
+      const card = document.createElement('div');
+      card.className = 'video-card fade-up';
+      card.innerHTML = `
+        <div class="video-wrapper">
+          <iframe
+            src="https://www.youtube.com/embed/${video.video_id}"
+            title="${video.judul}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy">
+          </iframe>
+        </div>
+        <div class="video-info">
+          <h3>${video.judul}</h3>
+          ${video.deskripsi ? `<p>${video.deskripsi}</p>` : ''}
+        </div>
+      `;
+      videoGrid.appendChild(card);
+    });
+
+    document.querySelectorAll('.video-card.fade-up').forEach(el => observer.observe(el));
+  } catch {
+    videoGrid.innerHTML = '<div style="text-align:center;padding:2rem;color:#d9534f;">❌ Gagal memuat video.</div>';
+  }
+}
+
+if (document.getElementById('videoGrid')) loadVideo();

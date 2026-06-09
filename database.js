@@ -75,6 +75,16 @@ const initDB = async () => {
     await pool.query('INSERT INTO admin (username, password) VALUES ($1, $2)', [adminUser, hash]);
     console.log(`✅ Akun admin "${adminUser}" berhasil dibuat`);
   }
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS video (
+      id SERIAL PRIMARY KEY,
+      judul TEXT NOT NULL,
+      url_youtube TEXT NOT NULL,
+      video_id TEXT NOT NULL,
+      deskripsi TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
   console.log('✅ Database PostgreSQL siap');
 };
 

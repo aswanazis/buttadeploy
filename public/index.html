@@ -11,9 +11,9 @@
   <style>
     /* Tombol Toggle Bahasa */
     #langToggleBtn {
-      background: rgba(245, 244, 244, 0.999);
-      color: #2b7a3e;
-      border: 1.5px solid #2b7a3e;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.5);
       border-radius: 40px;
       padding: 0.3rem 0.9rem;
       font-size: 0.85rem;
@@ -24,7 +24,49 @@
       letter-spacing: 0.03em;
     }
     #langToggleBtn:hover {
-      background:  #2b7a3e; color: white;;
+      background: rgba(255,255,255,0.25);
+    }
+  
+    /* Video Grid */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .video-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: transform 0.3s;
+    }
+    .video-card:hover { transform: translateY(-4px); }
+    .video-wrapper {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+    }
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+    .video-info {
+      padding: 1rem 1.25rem;
+    }
+    .video-info h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e4a2f;
+      margin: 0 0 0.4rem;
+    }
+    .video-info p {
+      font-size: 0.85rem;
+      color: #666;
+      margin: 0;
     }
   </style>
 </head>
@@ -59,7 +101,7 @@
   <!-- Hero -->
   <section id="home" class="hero">
     <div class="container hero-content">
-      <h1 data-i18n="hero_title">Menanam Kota Kita, <br> Melestarikan Bumi</h1>
+      <h1 data-i18n="hero_title">Menanam Kota, <br> Melestarikan Bumi</h1>
       <p data-i18n="hero_desc">Pusat Edukasi, Praktik & Replikasi Urban Farming Terintegrasi. Memberdayakan masyarakat lokal untuk ketahanan pangan dan lingkungan hijau.</p>
       <div class="hero-buttons">
         <a href="#programs" class="btn" data-i18n="hero_btn_program">Jelajahi Program</a>
@@ -84,6 +126,13 @@
         <div class="stat-item"><div class="stat-number">2.400+</div><div data-i18n="stat_volunteer">Relawan Aktif</div></div>
         <div class="stat-item"><div class="stat-number">35+</div><div data-i18n="stat_garden">Kebun Percontohan</div></div>
       </div>
+    </div>
+
+    <!-- Video Kegiatan di section Tentang -->
+    <div style="margin-top: 3rem;">
+      <h3 class="section-title fade-up" style="font-size:1.5rem;" data-i18n="video_title">Video Kegiatan</h3>
+      <p class="section-sub fade-up" data-i18n="video_sub">Dokumentasi kegiatan urban farming dan pelestarian lingkungan kami.</p>
+      <div class="video-grid" id="videoGrid"></div>
     </div>
   </section>
 

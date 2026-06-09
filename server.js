@@ -83,15 +83,7 @@ app.post('/api/kontak', async (req, res) => {
 });
 
 
-// ========== TRANSLATE via Google Translate (gratis) ==========
-async function googleTranslate(text, from = 'id', to = 'en') {
-  if (!text || text.trim() === '') return text;
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return data[0].map(chunk => chunk[0]).join('');
-}
-
+// ========== TRANSLATE via Anthropic API ==========
 app.post('/api/translate', async (req, res) => {
   try {
     const { articles } = req.body;
@@ -99,25 +91,85 @@ app.post('/api/translate', async (req, res) => {
       return res.status(400).json({ error: 'Format tidak valid' });
     }
 
-    const translated = await Promise.all(articles.map(async (article) => {
-      try {
-        const [judul, deskripsiSingkat, kontenLengkap] = await Promise.all([
-          googleTranslate(article.judul || ''),
-          googleTranslate(article.deskripsiSingkat || ''),
-          googleTranslate(article.kontenLengkap || '')
-        ]);
-        return { ...article, judul, deskripsiSingkat, kontenLengkap };
-      } catch (err) {
-        console.error('Gagal terjemahkan artikel', article.id, err.message);
-        return article;
-      }
-    }));
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'DEEPSEEK_API_KEY belum diset di Railway Variables' });
+    }
 
+    const prompt = `You are a professional translator. Translate these Indonesian news articles to English.
+Return ONLY a valid JSON array (no markdown, no code blocks). Keep the id field unchanged.
+Translate only: judul, deskripsiSingkat, and kontenLengkap fields.
+
+Articles: ${JSON.stringify(articles)}`;
+
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: 'You are a professional Indonesian-to-English translator. Always return valid JSON only.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('DeepSeek error:', data);
+      return res.status(500).json({ error: 'Terjemahan gagal' });
+    }
+
+    const text = data.choices?.[0]?.message?.content || '[]';
+    const clean = text.replace(/```json|```/gi, '').trim();
+    const translated = JSON.parse(clean);
     res.json({ translated });
 
   } catch (err) {
     console.error('Translate error:', err.message);
     res.status(500).json({ error: 'Terjemahan gagal: ' + err.message });
+  }
+});
+
+
+// ========== API VIDEO ==========
+app.get('/api/video', async (req, res) => {
+  try {
+    const videos = await query('SELECT * FROM video ORDER BY created_at DESC');
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal mengambil data video' });
+  }
+});
+
+app.post('/admin/video', isAdmin, async (req, res) => {
+  try {
+    const { judul, url_youtube, deskripsi } = req.body;
+    if (!judul || !url_youtube) return res.status(400).json({ error: 'Judul dan URL wajib diisi' });
+    // Ekstrak video ID dari URL YouTube
+    const match = url_youtube.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (!match) return res.status(400).json({ error: 'URL YouTube tidak valid' });
+    const video_id = match[1];
+    const result = await run(
+      'INSERT INTO video (judul, url_youtube, video_id, deskripsi) VALUES (?, ?, ?, ?)',
+      [judul, url_youtube, video_id, deskripsi || '']
+    );
+    res.json({ id: result.id, message: 'Video ditambahkan' });
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal menambahkan video' });
+  }
+});
+
+app.delete('/admin/video/:id', isAdmin, async (req, res) => {
+  try {
+    await run('DELETE FROM video WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Video dihapus' });
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal menghapus video' });
   }
 });
 
