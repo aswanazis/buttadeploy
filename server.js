@@ -83,7 +83,15 @@ app.post('/api/kontak', async (req, res) => {
 });
 
 
-// ========== TRANSLATE via Anthropic API ==========
+// ========== TRANSLATE via Google Translate (gratis) ==========
+async function googleTranslate(text, from = 'id', to = 'en') {
+  if (!text || text.trim() === '') return text;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data[0].map(chunk => chunk[0]).join('');
+}
+
 app.post('/api/translate', async (req, res) => {
   try {
     const { articles } = req.body;
@@ -91,42 +99,20 @@ app.post('/api/translate', async (req, res) => {
       return res.status(400).json({ error: 'Format tidak valid' });
     }
 
-    const apiKey = process.env.DEEPSEEK_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'DEEPSEEK_API_KEY belum diset di Railway Variables' });
-    }
+    const translated = await Promise.all(articles.map(async (article) => {
+      try {
+        const [judul, deskripsiSingkat, kontenLengkap] = await Promise.all([
+          googleTranslate(article.judul || ''),
+          googleTranslate(article.deskripsiSingkat || ''),
+          googleTranslate(article.kontenLengkap || '')
+        ]);
+        return { ...article, judul, deskripsiSingkat, kontenLengkap };
+      } catch (err) {
+        console.error('Gagal terjemahkan artikel', article.id, err.message);
+        return article;
+      }
+    }));
 
-    const prompt = `You are a professional translator. Translate these Indonesian news articles to English.
-Return ONLY a valid JSON array (no markdown, no code blocks). Keep the id field unchanged.
-Translate only: judul, deskripsiSingkat, and kontenLengkap fields.
-
-Articles: ${JSON.stringify(articles)}`;
-
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        max_tokens: 2000,
-        messages: [
-          { role: 'system', content: 'You are a professional Indonesian-to-English translator. Always return valid JSON only.' },
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('DeepSeek error:', data);
-      return res.status(500).json({ error: 'Terjemahan gagal' });
-    }
-
-    const text = data.choices?.[0]?.message?.content || '[]';
-    const clean = text.replace(/```json|```/gi, '').trim();
-    const translated = JSON.parse(clean);
     res.json({ translated });
 
   } catch (err) {
