@@ -15,13 +15,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Gambar disimpan di Cloudinary - tidak perlu static uploads route
 
-// Simpan sesi ke SQLite supaya tidak hilang saat server restart
-const SQLiteStore = require('connect-sqlite3')(session);
+// Session store - gunakan memory store (cukup untuk production skala kecil)
 app.use(session({
-  store: new SQLiteStore({
-    db: 'sessions.db',
-    dir: process.env.DATA_DIR || path.join(__dirname, 'data')
-  }),
   secret: process.env.SESSION_SECRET || 'fallback-dev-secret-ganti-di-production',
   resave: false,
   saveUninitialized: false,
