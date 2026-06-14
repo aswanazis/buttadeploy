@@ -41,7 +41,7 @@ const translations = {
     prog4_desc: "Bank sampah, daur ulang, penanaman pohon massal, dan kampanye sungai bersih berbasis masyarakat lokal.",
 
     // Gallery
-    gallery_title: "Momen Aksi Nyata",
+    gallery_title: "galeri",
     gallery_sub: "Dari edukasi hingga panen bersama, setiap langkah kecil memberi dampak besar bagi lingkungan.",
 
     // News
