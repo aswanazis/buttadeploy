@@ -208,7 +208,7 @@ section {
 
 /* Cards Program */
 #program {
-  padding-top: 5rem;
+  padding-top: 6rem;
 }
 .program-grid {
   display: grid;
@@ -430,6 +430,9 @@ section {
   color: #2d3e35;
 }
 /* contact form */
+#contact {
+  padding-top: 6rem;
+}
 .contact-form {
   background: white;
   border-radius: 40px;
