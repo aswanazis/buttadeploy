@@ -207,6 +207,9 @@ section {
 }
 
 /* Cards Program */
+#program {
+  padding-top: 5rem;
+}
 .program-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
