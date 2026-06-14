@@ -155,7 +155,7 @@ const translations = {
     prog4_desc: "Waste banks, recycling, mass tree planting, and community-based clean river campaigns.",
 
     // Gallery
-    gallery_title: "Real Action Moments",
+    gallery_title: "Gallery",
     gallery_sub: "From education to communal harvest, every small step makes a big impact on the environment.",
 
     // News
