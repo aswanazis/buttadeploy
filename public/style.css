@@ -306,6 +306,9 @@ section {
   transform: scale(1.05);
 }
 /* Berita / News Section */
+#berita {
+  padding-top: 6rem;
+}
 .berita-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
